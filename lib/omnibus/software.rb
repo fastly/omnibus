@@ -29,7 +29,7 @@ module Omnibus
       #
       # @return [Software]
       #
-      def load(project, name, manifest)
+      def load(project, name, manifest, build_dep = false)
         loaded_softwares["#{project.name}:#{name}"] ||= begin
           filepath = Omnibus.software_path(name)
 
@@ -41,9 +41,10 @@ module Omnibus
             end
           end
 
-          instance = new(project, filepath, manifest)
+          instance = new(project, filepath, manifest, build_dep)
           instance.evaluate_file(filepath)
           instance.load_dependencies
+          instance.load_build_dependencies
 
           # Add the loaded component to the library
           project.library.component_added(instance)
@@ -92,7 +93,7 @@ module Omnibus
     #
     # @return [Software]
     #
-    def initialize(project, filepath = nil, manifest = nil)
+    def initialize(project, filepath = nil, manifest = nil, build_dep = nil)
       unless project.is_a?(Project)
         raise ArgumentError,
           "`project' must be a kind of `Omnibus::Project', but was `#{project.class.inspect}'!"
@@ -102,6 +103,8 @@ module Omnibus
       @filepath = filepath
       @project  = project
       @manifest = manifest
+
+      @build_dep = build_dep
 
       # Overrides
       @overrides = NULL
@@ -223,6 +226,25 @@ module Omnibus
       dependencies.dup
     end
     expose :dependency
+
+    #
+    # Add a build dependency to this software.
+    #
+    # @example
+    #   build_dependency 'libxml2'
+    #   build_dependency 'libpng'
+    #
+    # @param [String] val
+    #   the name of a build dependency
+    #
+    # @return [Array<String>]
+    #   the list of build dependencies
+    #
+    def build_dependency(val)
+      build_dependencies << val
+      build_dependencies.dup
+    end
+    expose :build_dependency
 
     #
     # Set or retrieve the source for the software.
@@ -583,7 +605,11 @@ module Omnibus
     # @return [String]
     #
     def install_dir
-      @project.install_dir
+      if build_dep == true
+        build_dir
+      else
+        @project.install_dir
+      end
     end
     expose :install_dir
 
@@ -807,7 +833,10 @@ module Omnibus
     # @return [Hash]
     #
     def with_embedded_path(env = {})
-      paths = ["#{install_dir}/bin", "#{install_dir}/embedded/bin"]
+      paths = ["#{build_dir}/bin",
+               "#{build_dir}/embedded/bin",
+               "#{install_dir}/bin",
+               "#{install_dir}/embedded/bin"].uniq
       path_value = prepend_path(paths)
       env.merge(path_key => path_value)
     end
@@ -883,6 +912,19 @@ module Omnibus
     end
 
     #
+    # Recursively load all the build dependencies for this software.
+    #
+    # @return [true]
+    #
+    def load_build_dependencies
+      build_dependencies.each do |build_dependency|
+        Software.load(project, build_dependency, manifest, true)
+      end
+
+      true
+    end
+
+    #
     # The builder object for this software definition.
     #
     # @return [Builder]
@@ -890,6 +932,11 @@ module Omnibus
     def builder
       @builder ||= Builder.new(self)
     end
+
+    def build_dep
+      @build_dep
+    end
+    expose :build_dep
 
     def to_manifest_entry
       Omnibus::ManifestEntry.new(name, {
@@ -930,6 +977,20 @@ module Omnibus
     #
     def dependencies
       @dependencies ||= []
+    end
+
+    # The list of build dependencies for this software. This software is
+    # required to build your software, but will not be included in the final
+    # packages.
+    #
+    # @see #build_dependency
+    #
+    # @param [Array<String>]
+    #
+    # @return [Array<String>]
+    #
+    def build_dependencies
+      @build_dependencies ||= []
     end
 
     #
@@ -1259,7 +1320,9 @@ module Omnibus
     # @return [String]
     #
     def log_key
-      @log_key ||= "#{super}: #{name}"
+      qualifier = ""
+      qualifier = " (Build Dependency)" if build_dep
+      @log_key ||= "#{super}: #{name}#{qualifier}"
     end
 
     def to_s
