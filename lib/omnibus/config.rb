@@ -440,6 +440,17 @@ module Omnibus
       ["omnibus-software"]
     end
 
+    # Additional CFLAGS to inject into the environment. Note that
+    # e.g. CXXFLAGS inherits this, too.
+    #
+    # @return [String]
+    default(:inject_cflags, "")
+
+    # Additional LDFLAGS to inject into the environment.
+    #
+    # @return [String]
+    default(:inject_ldflags, "")
+
     # Solaris linker mapfile to use, if needed
     # see http://docs.oracle.com/cd/E23824_01/html/819-0690/chapter5-1.html
     # Path is relative to the 'files' directory in your omnibus project
