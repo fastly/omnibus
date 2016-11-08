@@ -133,6 +133,26 @@ module Omnibus
         end
       end
 
+      context "when the project modifies the environment" do
+        before do
+          stub_ohai(platform: "ubuntu", version: "12.04")
+          project.env_override("CC", "clang")
+          project.env_append("CFLAGS", "-ljemalloc")
+          project.env_prepend("CXXFLAGS", "-fPIC")
+        end
+
+        it "gets the expected environment" do
+          expect(subject.with_standard_compiler_flags).to eq(
+                                                            "CC"              => "clang",
+                                                            "LDFLAGS"         => "-Wl,-rpath,/opt/project/embedded/lib -L/opt/project/embedded/lib",
+                                                            "CFLAGS"          => "-I/opt/project/embedded/include -O2 -ljemalloc",
+                                                            "CXXFLAGS"        => "-fPIC -I/opt/project/embedded/include -O2",
+                                                            "CPPFLAGS"        => "-I/opt/project/embedded/include -O2",
+                                                            "LD_RUN_PATH"     => "/opt/project/embedded/lib",
+                                                            "PKG_CONFIG_PATH" => "/opt/project/embedded/lib/pkgconfig"
+                                                          )
+        end
+      end
       context "on solaris_11" do
         before do
           stub_ohai(platform: "solaris2", version: "5.11") do |data|
