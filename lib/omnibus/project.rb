@@ -818,6 +818,24 @@ module Omnibus
     end
     expose :text_manifest_path
 
+    def env_override(name, val)
+      @env_overrides ||= Hash.new
+      @env_overrides[name] = val
+    end
+    expose :env_override
+
+    def env_prepend(name, val)
+      @env_prepends ||= Hash.new
+      @env_prepends[name] = val
+    end
+    expose :env_prepend
+
+    def env_append(name, val)
+      @env_appends ||= Hash.new
+      @env_appends[name] = val
+    end
+    expose :env_append
+
     #
     # @!endgroup
     # --------------------------------------------------
@@ -939,6 +957,18 @@ module Omnibus
     #
     def overrides
       @overrides ||= {}
+    end
+
+    def env_overrides
+      @env_overrides ||= {}
+    end
+
+    def env_prepends
+      @env_prepends ||= {}
+    end
+
+    def env_appends
+      @env_appends ||= {}
     end
 
     #
