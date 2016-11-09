@@ -818,21 +818,48 @@ module Omnibus
     end
     expose :text_manifest_path
 
+    #
+    # Override an environment variable returned
+    # by with_standard_compiler_flags
+    #
+    # @example
+    #   env_override(\"CC\", \"clang\")
+    #
+    # @return [Hash]
+    #
     def env_override(name, val)
-      @env_overrides ||= Hash.new
-      @env_overrides[name] = val
+      env_overrides[name] = val
+      env_overrides.dup
     end
     expose :env_override
 
+    #
+    # Prepend to an environment variable returned
+    # by with_standard_compiler_flags
+    #
+    # @example
+    #   env_override(\"CC\", \"clang\")
+    #
+    # @return [Hash]
+    #
     def env_prepend(name, val)
-      @env_prepends ||= Hash.new
-      @env_prepends[name] = val
+      env_prepends[name] = val
+      env_prepends.dup
     end
     expose :env_prepend
 
+    #
+    # Append to an environment variable returned
+    # by with_standard_compiler_flags
+    #
+    # @example
+    #   env_override(\"CC\", \"clang\")
+    #
+    # @return [Hash]
+    #
     def env_append(name, val)
-      @env_appends ||= Hash.new
-      @env_appends[name] = val
+      env_appends[name] = val
+      env_appends.dup
     end
     expose :env_append
 
@@ -959,14 +986,32 @@ module Omnibus
       @overrides ||= {}
     end
 
+    #
+    # The list of with_standard_compiler_flags environment variables
+    # being overridden by the project
+    #
+    # @return [Hash]
+    #
     def env_overrides
       @env_overrides ||= {}
     end
 
+    #
+    # The list of with_standard_compiler_flags environment variables
+    # being prepended to by the project
+    #
+    # @return [Hash]
+    #
     def env_prepends
       @env_prepends ||= {}
     end
 
+    #
+    # The list of with_standard_compiler_flags environment variables
+    # being appended to by the project
+    #
+    # @return [Hash]
+    #
     def env_appends
       @env_appends ||= {}
     end

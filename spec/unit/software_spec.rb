@@ -138,16 +138,16 @@ module Omnibus
           stub_ohai(platform: "ubuntu", version: "12.04")
           project.env_override("CC", "clang")
           project.env_append("CFLAGS", "-ljemalloc")
-          project.env_prepend("CXXFLAGS", "-fPIC")
+          project.env_prepend("CFLAGS", "-fPIC")
         end
 
         it "gets the expected environment" do
           expect(subject.with_standard_compiler_flags).to eq(
                                                             "CC"              => "clang",
                                                             "LDFLAGS"         => "-Wl,-rpath,/opt/project/embedded/lib -L/opt/project/embedded/lib",
-                                                            "CFLAGS"          => "-I/opt/project/embedded/include -O2 -ljemalloc",
-                                                            "CXXFLAGS"        => "-fPIC -I/opt/project/embedded/include -O2",
-                                                            "CPPFLAGS"        => "-I/opt/project/embedded/include -O2",
+                                                            "CFLAGS"          => "-fPIC -I/opt/project/embedded/include -O2 -ljemalloc",
+                                                            "CXXFLAGS"        => "-fPIC -I/opt/project/embedded/include -O2 -ljemalloc",
+                                                            "CPPFLAGS"        => "-fPIC -I/opt/project/embedded/include -O2 -ljemalloc",
                                                             "LD_RUN_PATH"     => "/opt/project/embedded/lib",
                                                             "PKG_CONFIG_PATH" => "/opt/project/embedded/lib/pkgconfig"
                                                           )
