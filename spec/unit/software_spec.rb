@@ -448,13 +448,16 @@ module Omnibus
       end
 
       let(:prepended_path) do
-        ["#{install_dir}/bin", separator, "#{install_dir}/embedded/bin", separator, path].join
+        ["#{build_dir}/bin", separator, "#{build_dir}/embedded/bin", separator,
+         "#{install_dir}/bin", separator, "#{install_dir}/embedded/bin", separator,
+         path].join
       end
 
       context "on *Nix" do
         let(:separator) { ":" }
         let(:path) { "/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin" }
         let(:install_dir) { "/opt/project" }
+        let(:build_dir) { "/var/cache/omnibus/build/project" }
 
         it "prepends a path to PATH" do
           expect(subject.prepend_path("/foo/bar")).to eq(
@@ -486,10 +489,12 @@ module Omnibus
         before do
           stub_ohai(platform: "windows", version: "2012")
         end
-
+        let(:project_root) { "c:/omnibus-ruby" }
         let(:separator) { ";" }
         let(:path) { "c:/Ruby193/bin;c:/Windows/system32;c:/Windows;c:/Windows/System32/Wbem" }
         let(:install_dir) { "c:/opt/project" }
+        let(:build_dir) { "c:/omnibus-ruby/build"}
+
         let(:prepended_path_msys) do
           [ "#{install_dir}/bin", separator, "#{install_dir}/embedded/bin", separator,
             "#{install_dir}/embedded/msys/1.0/bin", separator, path].join
