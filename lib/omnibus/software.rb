@@ -773,26 +773,27 @@ module Omnibus
         extra_linker_flags["LD_OPTIONS"] = ld_options
       end
 
-      env = env.merge(compiler_flags).
-              merge(extra_linker_flags).
-              # always want to favor pkg-config from embedded location to not hose
-              # configure scripts which try to be too clever and ignore our explicit
-              # CFLAGS and LDFLAGS in favor of pkg-config info
-              merge({ "PKG_CONFIG_PATH" => "#{install_dir}/embedded/lib/pkgconfig" }).
-              # Set default values for CXXFLAGS and CPPFLAGS.
-              merge("CXXFLAGS" => compiler_flags["CFLAGS"]).
-              merge("CPPFLAGS" => compiler_flags["CFLAGS"])
-
       project.env_appends.each do |name, val|
-        env[name] = env.has_key?(name) ? env[name] + " " + val : val
+        compiler_flags[name] = compiler_flags.has_key?(name) ? compiler_flags[name] + " " + val : val
       end
 
       project.env_prepends.each do |name, val|
-        env[name] = env.has_key?(name) ? val + " " + env[name] : val
+        compiler_flags[name] = compiler_flags.has_key?(name) ? val + " " + compiler_flags[name] : val
       end
 
-      env = env.merge(project.env_overrides) unless project.env_overrides.empty?
-      env
+      project.env_overrides.each do |name, val|
+        compiler_flags[name] = val.dup
+      end
+
+      env.merge(compiler_flags).
+        merge(extra_linker_flags).
+        # always want to favor pkg-config from embedded location to not hose
+        # configure scripts which try to be too clever and ignore our explicit
+        # CFLAGS and LDFLAGS in favor of pkg-config info
+        merge({ "PKG_CONFIG_PATH" => "#{install_dir}/embedded/lib/pkgconfig" }).
+        # Set default values for CXXFLAGS and CPPFLAGS.
+        merge("CXXFLAGS" => compiler_flags["CFLAGS"]).
+        merge("CPPFLAGS" => compiler_flags["CFLAGS"])
     end
     expose :with_standard_compiler_flags
 
