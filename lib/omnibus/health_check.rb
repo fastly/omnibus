@@ -134,6 +134,7 @@ module Omnibus
       /Tcl$/,
       /Cocoa$/,
       /Carbon$/,
+      /Foundation/,
       /IOKit$/,
       /Tk$/,
       /libutil\.dylib/,
